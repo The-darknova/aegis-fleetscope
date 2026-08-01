@@ -5,6 +5,13 @@
 **Architecture Principle:** OpenSCAP remains strictly responsible for executing the compliance benchmarks; the platform handles everything surrounding those assessments.
 **Engineering Standards:** All generated code must adhere to SOLID principles, Clean Architecture, modular design, and strong typing.
 
+## Git Workflow & Repository Management
+**Crucial Directive:** To maintain a clean and organized repository, all agents MUST strictly adhere to the following Git workflow:
+1. **Branching Strategy:** Do NOT commit directly to `master`. Always create a new branch for your task using standard prefixes: `feat/` (new features), `fix/` (bug fixes), `refactor/` (code improvements), `docs/` (documentation) or `chore/` (maintenance).
+2. **Commit Practices:** Ensure commits are atomic and logically grouped. Do not combine unrelated changes into a single commit.
+3. **Conventional Commits:** Write clear, descriptive commit messages following the Conventional Commits format (e.g., `feat(agent): add OS detection module` or `fix(backend): resolve scheduler timezone bug`).
+4. **Pull Requests:** Push your branches to the remote and create Pull Requests (or notify the user to do so) instead of pushing directly to the main branch.
+
 ## Phase 1 Execution Sequence
 
 The Antigravity swarm must execute the initial scaffolding in the following concurrent sequence to establish the foundation for Linux support, OpenSCAP integration, the dashboard, and compliance reporting.
