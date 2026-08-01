@@ -1,0 +1,59 @@
+# General
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Build and Temp folders
+tmp/
+*.log
+
+# ----------------------------------------------------------------------
+# Agent (Go)
+# ----------------------------------------------------------------------
+/agent/bin/
+/agent/build/
+/agent/coverage.out
+/agent/*.test
+/agent/*.exe
+/agent/agent
+
+# ----------------------------------------------------------------------
+# Server (Python FastAPI)
+# ----------------------------------------------------------------------
+/server/__pycache__/
+/server/**/*.pyc
+/server/.venv/
+/server/venv/
+/server/.env
+/server/.pytest_cache/
+/server/.coverage
+/server/htmlcov/
+/server/alembic.ini
+
+# ----------------------------------------------------------------------
+# Dashboard (Node/React/Vite)
+# ----------------------------------------------------------------------
+/dashboard/node_modules/
+/dashboard/dist/
+/dashboard/build/
+/dashboard/.env
+/dashboard/.env.local
+/dashboard/.env.development.local
+/dashboard/.env.test.local
+/dashboard/.env.production.local
+/dashboard/npm-debug.log*
+/dashboard/yarn-debug.log*
+/dashboard/yarn-error.log*
+
+# ----------------------------------------------------------------------
+# Deploy & Secrets
+# ----------------------------------------------------------------------
+/deploy/.env
+/deploy/data/
+/deploy/db/
+*.pem
+*.key
+*.crt
