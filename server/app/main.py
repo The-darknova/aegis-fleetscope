@@ -18,6 +18,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.api.endpoints import agent, scap
+
 @app.get("/api/v1/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "service": "Aegis FleetScope Backend"}
+
+# Include routers
+app.include_router(agent.router, prefix="/api/v1/agents", tags=["Agents"])
+app.include_router(scap.router, prefix="/api/v1/scap", tags=["SCAP Content"])
