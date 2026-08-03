@@ -110,6 +110,12 @@ jobs:
           npm ci
           npm run build
 
+      - name: Upload Agent Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-binaries
+          path: agent/bin/
+
   # 5. Package Stage
   package:
     name: Package (DEB/RPM)
@@ -118,6 +124,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        
+      - name: Download Agent Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: agent-binaries
+          path: agent/bin/
+
       - name: Setup FPM
         run: |
           sudo apt-get install -y ruby ruby-dev rubygems build-essential
