@@ -4,17 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"os"
-	"os/exec"
 	"runtime"
 	"strings"
 )
 
 type SystemInfo struct {
-	Hostname      string `json:"hostname"`
-	OSName        string `json:"os_name"`
-	OSVersion     string `json:"os_version"`
-	Architecture  string `json:"architecture"`
-	KernelVersion string `json:"kernel_version"`
+	OSName       string `json:"os_name"`
+	OSVersion    string `json:"os_version"`
+	Architecture string `json:"architecture"`
+	Hostname     string `json:"hostname"`
 }
 
 func GetSystemInfo() (*SystemInfo, error) {
@@ -28,12 +26,6 @@ func GetSystemInfo() (*SystemInfo, error) {
 	}
 
 	info.OSName, info.OSVersion = detectOS()
-
-	// Best effort kernel version
-	out, err := exec.Command("uname", "-r").Output()
-	if err == nil {
-		info.KernelVersion = strings.TrimSpace(string(out))
-	}
 
 	return info, nil
 }
