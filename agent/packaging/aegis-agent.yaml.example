@@ -1,0 +1,20 @@
+# Aegis FleetScope Agent Configuration Example
+# Place this file at /etc/aegis-fleetscope/agent.yaml
+
+# The URL of the central FastAPI backend
+server_url: "https://fleetscope.example.com"
+
+# Agent credentials (automatically populated upon first registration if empty)
+agent_id: ""
+token: ""
+
+# mTLS and TLS Configuration
+# ca_cert_path: "/etc/aegis-fleetscope/certs/ca.crt"
+# client_cert_path: "/etc/aegis-fleetscope/certs/client.crt"
+# client_key_path: "/etc/aegis-fleetscope/certs/client.key"
+
+# Sync interval for polling tasks (e.g. 15m, 1h)
+sync_interval: 15m
+
+# Logging level (debug, info, warn, error)
+log_level: "info"

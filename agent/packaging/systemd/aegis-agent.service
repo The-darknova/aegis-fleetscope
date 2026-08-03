@@ -1,0 +1,27 @@
+[Unit]
+Description=Aegis FleetScope Configuration Assessment Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Source configuration files if they exist (Debian/Ubuntu and RHEL/CentOS paths)
+EnvironmentFile=-/etc/default/aegis-agent
+EnvironmentFile=-/etc/sysconfig/aegis-agent
+ExecStart=/usr/bin/aegis-agent -config /etc/aegis-fleetscope/agent.yaml
+Restart=on-failure
+RestartSec=10s
+TimeoutStopSec=30
+LimitNOFILE=65535
+
+# Security sandboxing
+ProtectSystem=full
+ProtectHome=read-only
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

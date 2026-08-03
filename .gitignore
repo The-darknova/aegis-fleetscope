@@ -32,6 +32,7 @@ tmp/
 /server/.coverage
 /server/htmlcov/
 /server/alembic.ini
+/server/*.egg-info/
 
 # ----------------------------------------------------------------------
 # Dashboard (Node/React/Vite)
@@ -57,3 +58,4 @@ tmp/
 *.pem
 *.key
 *.crt
+*.egg-info/
