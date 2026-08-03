@@ -5,9 +5,14 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/aegis-agent -config /etc/aegis-fleetscope/agent.yaml
+# Source configuration files if they exist (Debian/Ubuntu and RHEL/CentOS paths)
+EnvironmentFile=-/etc/default/aegis-agent
+EnvironmentFile=-/etc/sysconfig/aegis-agent
+ExecStart=/usr/bin/aegis-agent -config /etc/aegis-fleetscope/agent.yaml
 Restart=on-failure
 RestartSec=10s
+TimeoutStopSec=30
+LimitNOFILE=65535
 
 # Security sandboxing
 ProtectSystem=full

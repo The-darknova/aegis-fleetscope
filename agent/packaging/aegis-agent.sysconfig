@@ -1,0 +1,9 @@
+# Aegis FleetScope Agent Environment Overrides
+# This file can be placed at /etc/default/aegis-agent (Debian/Ubuntu) 
+# or /etc/sysconfig/aegis-agent (RHEL/CentOS)
+
+# Override the server URL provided in the YAML configuration
+# AEGIS_SERVER_URL="https://fleetscope.example.com"
+
+# Provide the registration token via environment (more secure than YAML for automation)
+# AEGIS_TOKEN="your-secret-token"
