@@ -1,11 +1,499 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Aegis FleetScope API
+  description: Centralized Linux configuration assessment and compliance platform API.
   version: 1.0.0
+  license:
+    name: MIT
+servers:
+  - url: /api/v1
+    description: Core API V1
+security:
+  - bearerAuth: []
 paths:
-  /health:
+  # Agent Communications
+  /agents/register:
+    post:
+      summary: Register a new agent
+      operationId: registerAgent
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRegistration'
+      responses:
+        '201':
+          description: Successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentRegistrationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /agents/{agentId}/tasks:
     get:
-      summary: Health check
+      summary: Fetch pending tasks and policy assignments for an agent
+      operationId: getAgentTasks
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
-          description: OK
+          description: Pending tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTasksResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /agents/{agentId}/reports:
+    post:
+      summary: Upload an OpenSCAP XML report
+      operationId: uploadReport
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                report:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: Report accepted for processing
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /scap/content/{contentId}:
+    get:
+      summary: Download a specific SCAP data stream
+      operationId: getScapContent
+      parameters:
+        - name: contentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SCAP XML or ZIP data stream
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  # Dashboard APIs
+  /agents:
+    get:
+      summary: List all registered agents
+      operationId: listAgents
+      responses:
+        '200':
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /agents/{agentId}:
+    get:
+      summary: Retrieve specific agent details
+      operationId: getAgent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /compliance/overview:
+    get:
+      summary: Get aggregate fleet compliance score
+      operationId: getComplianceOverview
+      responses:
+        '200':
+          description: Compliance overview stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceOverview'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /compliance/reports:
+    get:
+      summary: List historical compliance reports
+      operationId: listReports
+      responses:
+        '200':
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /compliance/reports/{reportId}:
+    get:
+      summary: Get detailed view of a specific compliance report
+      operationId: getReportDetails
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed compliance report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetails'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /policies:
+    get:
+      summary: List defined policies
+      operationId: listPolicies
+      responses:
+        '200':
+          description: List of policies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Create a new policy
+      operationId: createPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+      responses:
+        '201':
+          description: Created policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /policies/{policyId}:
+    put:
+      summary: Update a policy
+      operationId: updatePolicy
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyUpdate'
+      responses:
+        '200':
+          description: Updated policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a policy
+      operationId: deletePolicy
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Policy deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /auth/login:
+    post:
+      summary: Issue JWT token for dashboard users
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Invalid request parameters or body
+    Unauthorized:
+      description: Authentication required
+    NotFound:
+      description: Resource not found
+  schemas:
+    AgentRegistration:
+      type: object
+      required:
+        - hostname
+        - os_name
+        - os_version
+        - architecture
+      properties:
+        hostname:
+          type: string
+        os_name:
+          type: string
+        os_version:
+          type: string
+        architecture:
+          type: string
+    AgentRegistrationResponse:
+      type: object
+      required:
+        - id
+        - token
+      properties:
+        id:
+          type: string
+        token:
+          type: string
+    AgentTasksResponse:
+      type: object
+      required:
+        - tasks
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentTask'
+    AgentTask:
+      type: object
+      required:
+        - task_id
+        - content_id
+        - profile_id
+      properties:
+        task_id:
+          type: string
+        content_id:
+          type: string
+        profile_id:
+          type: string
+    Agent:
+      type: object
+      required:
+        - id
+        - hostname
+        - os_name
+        - os_version
+        - last_seen
+      properties:
+        id:
+          type: string
+        hostname:
+          type: string
+        os_name:
+          type: string
+        os_version:
+          type: string
+        architecture:
+          type: string
+        last_seen:
+          type: string
+          format: date-time
+    ComplianceOverview:
+      type: object
+      required:
+        - total_agents
+        - compliant_agents
+        - non_compliant_agents
+        - average_score
+      properties:
+        total_agents:
+          type: integer
+        compliant_agents:
+          type: integer
+        non_compliant_agents:
+          type: integer
+        average_score:
+          type: number
+    ReportSummary:
+      type: object
+      required:
+        - id
+        - agent_id
+        - timestamp
+        - score
+      properties:
+        id:
+          type: string
+        agent_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        score:
+          type: number
+    ReportDetails:
+      type: object
+      required:
+        - id
+        - summary
+        - rule_results
+      properties:
+        id:
+          type: string
+        summary:
+          $ref: '#/components/schemas/ReportSummary'
+        rule_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuleResult'
+    RuleResult:
+      type: object
+      required:
+        - rule_id
+        - result
+      properties:
+        rule_id:
+          type: string
+        result:
+          type: string
+          enum: [pass, fail, error, unknown, notapplicable]
+        severity:
+          type: string
+    Policy:
+      type: object
+      required:
+        - id
+        - name
+        - os_target
+        - content_id
+        - profile_id
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        os_target:
+          type: string
+        content_id:
+          type: string
+        profile_id:
+          type: string
+    PolicyCreate:
+      type: object
+      required:
+        - name
+        - os_target
+        - content_id
+        - profile_id
+      properties:
+        name:
+          type: string
+        os_target:
+          type: string
+        content_id:
+          type: string
+        profile_id:
+          type: string
+    PolicyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        os_target:
+          type: string
+        content_id:
+          type: string
+        profile_id:
+          type: string
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    LoginResponse:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
