@@ -1,5 +1,6 @@
+
 from pydantic import BaseModel
-from typing import List
+
 
 class AgentRegistration(BaseModel):
     hostname: str
@@ -17,4 +18,4 @@ class AgentTask(BaseModel):
     profile_id: str
 
 class AgentTasksResponse(BaseModel):
-    tasks: List[AgentTask]
+    tasks: list[AgentTask]

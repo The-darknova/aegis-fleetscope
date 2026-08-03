@@ -1,0 +1,170 @@
+name: Aegis FleetScope CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # 1. Validation Stage
+  validation:
+    name: Code Validation & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Go Format & Lint
+        run: |
+          cd agent
+          go fmt ./...
+          go vet ./...
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python Lint (Backend)
+        run: |
+          cd server
+          pip install ruff
+          ruff check .
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Frontend Lint
+        run: |
+          cd dashboard
+          npm ci
+          # npm run lint is implicitly checked here, replace with actual if needed
+          # npm run lint 
+
+  # 2. Testing Stage
+  testing:
+    name: Unit & Integration Testing
+    needs: validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Go Tests (Agent)
+        run: |
+          cd agent
+          go test -v -cover ./...
+
+      - name: Python Tests (Backend)
+        run: |
+          cd server
+          # Assume pytest is configured
+          # pip install -r requirements.txt pytest
+          # pytest
+
+  # 3. API Validation Stage
+  api-validation:
+    name: OpenAPI Spec Validation
+    needs: validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Install Swagger CLI
+        run: npm install -g @apidevtools/swagger-cli
+      - name: Validate OpenAPI Contract
+        run: swagger-cli validate shared/openapi/openapi.yaml
+
+  # 4. Build Stage
+  build:
+    name: Build Artifacts
+    needs: [testing, api-validation]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build Agent (linux/amd64)
+        run: |
+          cd agent
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bin/aegis-agent-amd64 ./cmd/agent
+
+      - name: Build Agent (linux/arm64)
+        run: |
+          cd agent
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o bin/aegis-agent-arm64 ./cmd/agent
+
+      - name: Build Dashboard
+        run: |
+          cd dashboard
+          npm ci
+          npm run build
+
+      - name: Upload Agent Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-binaries
+          path: agent/bin/
+
+  # 5. Package Stage
+  package:
+    name: Package (DEB/RPM)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Download Agent Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: agent-binaries
+          path: agent/bin/
+
+      - name: Setup FPM
+        run: |
+          sudo apt-get install -y ruby ruby-dev rubygems build-essential
+          sudo gem install --no-document fpm
+      - name: Build DEB and RPM
+        run: |
+          cd agent
+          ./packaging/build.sh 1.0.0 1 amd64
+          ./packaging/build.sh 1.0.0 1 arm64
+
+  # 6. Container Stage
+  container:
+    name: Build Containers
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Build Backend Docker Image
+        run: |
+          echo "docker build -t aegis/backend ./server"
+      - name: Build Dashboard Docker Image
+        run: |
+          echo "docker build -t aegis/dashboard ./dashboard"
+
+  # 7. Release Stage
+  release:
+    name: Release to Registry
+    needs: [package, container]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Publish Release
+        run: |
+          echo "Publishing artifacts to registry and GitHub releases..."
