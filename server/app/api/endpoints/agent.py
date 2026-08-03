@@ -1,18 +1,18 @@
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
 import uuid
 
+from fastapi import APIRouter
+
 from app.schemas.agent import (
-    AgentRegistration, 
-    AgentRegistrationResponse, 
-    AgentTasksResponse, 
-    AgentTask
+    AgentRegistration,
+    AgentRegistrationResponse,
+    AgentTask,
+    AgentTasksResponse,
 )
 
 router = APIRouter()
 
 # Stub database mapping agent_id to os metadata dict
-mock_agent_os_db: Dict[str, Dict[str, str]] = {}
+mock_agent_os_db: dict[str, dict[str, str]] = {}
 
 def resolve_scap_content(os_name: str, os_version: str) -> str:
     """

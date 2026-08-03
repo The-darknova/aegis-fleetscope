@@ -20,6 +20,7 @@ app.add_middleware(
 
 from app.api.endpoints import agent, scap
 
+
 @app.get("/api/v1/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "service": "Aegis FleetScope Backend"}

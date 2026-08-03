@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text
+
 from app.db.base_class import Base
+
 
 class ScapMetadata(Base):
     __tablename__ = "scap_metadata"
