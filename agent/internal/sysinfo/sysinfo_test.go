@@ -28,6 +28,31 @@ UBUNTU_CODENAME=jammy
 	}
 }
 
+func TestParseOSReleaseRHEL(t *testing.T) {
+	mockData := []byte(`NAME="Red Hat Enterprise Linux"
+VERSION="9.2 (Plow)"
+ID="rhel"
+ID_LIKE="fedora"
+VERSION_ID='9.2'
+PLATFORM_ID="platform:el9"
+PRETTY_NAME="Red Hat Enterprise Linux 9.2 (Plow)"
+ANSI_COLOR="0;31"
+LOGO="fedora-logo-icon"
+CPE_NAME="cpe:/o:redhat:enterprise_linux:9::baseos"
+HOME_URL="https://www.redhat.com/"
+DOCUMENTATION_URL="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9"
+BUG_REPORT_URL="https://bugzilla.redhat.com/"
+`)
+
+	name, version := parseOSRelease(mockData)
+	if name != "rhel" {
+		t.Errorf("Expected OS name 'rhel', got '%s'", name)
+	}
+	if version != "9.2" {
+		t.Errorf("Expected OS version '9.2', got '%s'", version)
+	}
+}
+
 func TestParseLSBRelease(t *testing.T) {
 	mockData := []byte(`DISTRIB_ID=Ubuntu
 DISTRIB_RELEASE=20.04

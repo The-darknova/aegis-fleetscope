@@ -68,9 +68,11 @@ func parseOSRelease(data []byte) (string, string) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "ID=") {
-			name = strings.Trim(strings.TrimPrefix(line, "ID="), "\"")
+			val := strings.TrimPrefix(line, "ID=")
+			name = strings.Trim(strings.Trim(val, "\""), "'")
 		} else if strings.HasPrefix(line, "VERSION_ID=") {
-			version = strings.Trim(strings.TrimPrefix(line, "VERSION_ID="), "\"")
+			val := strings.TrimPrefix(line, "VERSION_ID=")
+			version = strings.Trim(strings.Trim(val, "\""), "'")
 		}
 	}
 	return name, version
