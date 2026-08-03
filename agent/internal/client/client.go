@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/The-darknova/aegis-fleetscope/agent/internal/config"
 	"github.com/The-darknova/aegis-fleetscope/agent/internal/sysinfo"
@@ -68,6 +69,7 @@ func NewAPIClient(cfg *config.Config) (*APIClient, error) {
 		Token:   cfg.Token,
 		HTTPClient: &http.Client{
 			Transport: tr,
+			Timeout:   30 * time.Second,
 		},
 	}, nil
 }
