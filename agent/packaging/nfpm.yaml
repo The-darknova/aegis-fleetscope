@@ -8,7 +8,7 @@ maintainer: admin@aegis-fleetscope.local
 description: Aegis FleetScope Go Agent
 vendor: Aegis
 homepage: https://github.com/The-darknova/aegis-fleetscope
-license: MIT
+license: AGPL-3.0
 contents:
   - src: ../bin/aegis-agent-${GOARCH}
     dst: /opt/aegis-fleetscope/agent/bin/aegis-agent
