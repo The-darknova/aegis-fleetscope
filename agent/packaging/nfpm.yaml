@@ -1,0 +1,19 @@
+name: aegis-agent
+arch: "${GOARCH}"
+platform: linux
+version: "${VERSION}"
+section: default
+priority: extra
+maintainer: admin@aegis-fleetscope.local
+description: Aegis FleetScope Go Agent
+vendor: Aegis
+homepage: https://github.com/The-darknova/aegis-fleetscope
+license: MIT
+contents:
+  - src: ../bin/aegis-agent-${GOARCH}
+    dst: /opt/aegis-fleetscope/agent/bin/aegis-agent
+  - src: ./aegis-agent.yaml.example
+    dst: /etc/aegis-fleetscope/aegis-agent.yaml
+    type: config
+  - src: ./systemd/aegis-agent.service
+    dst: /usr/lib/systemd/system/aegis-agent.service
