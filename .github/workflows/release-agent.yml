@@ -54,13 +54,15 @@ jobs:
           mkdir -p packages
           # Package for linux/amd64
           export GOARCH=amd64
-          nfpm package --config nfpm.yaml --packager deb --target packages/
-          nfpm package --config nfpm.yaml --packager rpm --target packages/
+          envsubst < nfpm.yaml > nfpm.rendered.yaml
+          nfpm package --config nfpm.rendered.yaml --packager deb --target packages/
+          nfpm package --config nfpm.rendered.yaml --packager rpm --target packages/
           
           # Package for linux/arm64
           export GOARCH=arm64
-          nfpm package --config nfpm.yaml --packager deb --target packages/
-          nfpm package --config nfpm.yaml --packager rpm --target packages/
+          envsubst < nfpm.yaml > nfpm.rendered.yaml
+          nfpm package --config nfpm.rendered.yaml --packager deb --target packages/
+          nfpm package --config nfpm.rendered.yaml --packager rpm --target packages/
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
