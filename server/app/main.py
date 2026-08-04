@@ -18,8 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.api.endpoints import agent, scap
-
+from app.api.endpoints import agent, scap, dashboard, auth
 
 @app.get("/api/v1/health", tags=["System"])
 async def health_check():
@@ -28,3 +27,5 @@ async def health_check():
 # Include routers
 app.include_router(agent.router, prefix="/api/v1/agents", tags=["Agents"])
 app.include_router(scap.router, prefix="/api/v1/scap", tags=["SCAP Content"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])

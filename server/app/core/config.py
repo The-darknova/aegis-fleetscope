@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     
     # Database settings - Default to localhost for development
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/aegis_fleetscope"
+    DATABASE_URL: str = "postgresql://aegis:aegis_password@localhost:5432/aegis_fleetscope"
 
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True, extra="ignore")
 

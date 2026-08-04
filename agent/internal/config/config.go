@@ -66,3 +66,11 @@ func LoadConfig() (*Config, error) {
 
 	return cfg, nil
 }
+
+func SaveConfig(cfg *Config, configPath string) error {
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(configPath, data, 0600)
+}

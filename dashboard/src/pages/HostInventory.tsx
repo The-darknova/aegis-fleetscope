@@ -1,51 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Pages.css';
+import { listAgents } from '../api/sdk.gen';
 
 const HostInventory: React.FC = () => {
+  const [agents, setAgents] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchAgents() {
+      try {
+        const res = await listAgents();
+        if (res.data) setAgents(res.data);
+      } catch (err) {
+        console.error("Failed to fetch agents", err);
+      }
+    }
+    fetchAgents();
+  }, []);
+
   return (
     <div className="page-wrapper">
       <div className="page-header">
         <h1>Host Inventory</h1>
-        <p className="text-muted">Manage and monitor connected agents</p>
+        <button className="primary-btn">Add Host</button>
       </div>
 
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <table className="data-table">
+      <div className="glass-panel table-container">
+        <table>
           <thead>
             <tr>
+              <th>ID</th>
               <th>Hostname</th>
               <th>OS / Version</th>
               <th>Architecture</th>
-              <th>Status</th>
               <th>Last Seen</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style={{fontWeight: 500}}>web-server-prod-01</td>
-              <td>Ubuntu 24.04</td>
-              <td>x86_64</td>
-              <td><span className="badge badge-success">Online</span></td>
-              <td>2 mins ago</td>
-              <td><button className="btn btn-secondary">Details</button></td>
-            </tr>
-            <tr>
-              <td style={{fontWeight: 500}}>db-primary-eu</td>
-              <td>RHEL 9.2</td>
-              <td>aarch64</td>
-              <td><span className="badge badge-warning">Syncing</span></td>
-              <td>10 mins ago</td>
-              <td><button className="btn btn-secondary">Details</button></td>
-            </tr>
-            <tr>
-              <td style={{fontWeight: 500}}>cache-node-04</td>
-              <td>Debian 12</td>
-              <td>x86_64</td>
-              <td><span className="badge badge-danger">Offline</span></td>
-              <td>2 days ago</td>
-              <td><button className="btn btn-secondary">Details</button></td>
-            </tr>
+            {agents.map((host) => (
+              <tr key={host.id}>
+                <td>{host.id}</td>
+                <td>{host.hostname}</td>
+                <td>{host.os_name} {host.os_version}</td>
+                <td>{host.architecture}</td>
+                <td>{host.last_seen || 'Never'}</td>
+              </tr>
+            ))}
+            {agents.length === 0 && (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center' }}>No agents registered</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
