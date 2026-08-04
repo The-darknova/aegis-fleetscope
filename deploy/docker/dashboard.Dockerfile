@@ -4,6 +4,7 @@ WORKDIR /app
 COPY dashboard/package*.json ./
 RUN npm ci
 COPY dashboard/ ./
+COPY shared/ ../shared/
 RUN npm run build
 
 # Production Stage

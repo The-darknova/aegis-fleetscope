@@ -51,7 +51,18 @@ func main() {
 		apiClient.Token = resp.Token
 		log.Printf("Successfully registered. Agent ID: %s", cfg.AgentID)
 
-		// In a real agent, we would save the token to the config file here.
+		// Save the token and agent ID back to the config file
+		configPath := "/etc/aegis-fleetscope/agent.yaml"
+		for i, arg := range os.Args {
+			if arg == "-config" && i+1 < len(os.Args) {
+				configPath = os.Args[i+1]
+			}
+		}
+		if err := config.SaveConfig(cfg, configPath); err != nil {
+			log.Printf("Warning: Failed to save config: %v", err)
+		} else {
+			log.Printf("Successfully saved agent credentials to %s", configPath)
+		}
 	}
 
 	for _, arg := range os.Args {
