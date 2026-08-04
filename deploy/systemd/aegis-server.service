@@ -1,0 +1,16 @@
+[Unit]
+Description=Aegis FleetScope Backend API
+After=network.target postgresql.service
+
+[Service]
+User=aegis
+Group=aegis
+WorkingDirectory=/opt/aegis-fleetscope/server
+Environment="PATH=/opt/aegis-fleetscope/server/.venv/bin"
+EnvironmentFile=/etc/aegis/server.env
+ExecStart=/opt/aegis-fleetscope/server/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

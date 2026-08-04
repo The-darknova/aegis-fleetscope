@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aegis-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aegis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis_password}
+      POSTGRES_DB: ${POSTGRES_DB:-aegis_fleetscope}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_fleetscope"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/server.Dockerfile
+    container_name: aegis-server
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis_password}@postgres:5432/${POSTGRES_DB:-aegis_fleetscope}
+      - SECRET_KEY=${SECRET_KEY:-default_secret_key_change_in_production}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/dashboard.Dockerfile
+    container_name: aegis-dashboard
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
