@@ -54,6 +54,47 @@ The easiest way to run Aegis FleetScope locally is using Docker Compose.
 4. **Access the Dashboard:**
    Open your browser and navigate to `http://localhost`.
 
+### Local Server Setup (Development)
+
+To run the FastAPI backend server manually for development:
+
+1. **Navigate to the `server/` directory:**
+   ```bash
+   cd server
+   ```
+
+2. **Create a virtual environment and install dependencies:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. **Run the server:**
+   ```bash
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+### Agent Setup
+
+The agent is a lightweight Go binary that runs on the endpoints being monitored.
+
+1. **Download the Agent:**
+   Grab the latest `.deb`, `.rpm`, or raw binary from the [Releases](https://github.com/The-darknova/aegis-fleetscope/releases) page.
+
+2. **Installation (Debian/Ubuntu):**
+   ```bash
+   sudo dpkg -i aegis-agent_*.deb
+   ```
+
+3. **Configuration:**
+   Edit the configuration file at `/etc/aegis-fleetscope/aegis-agent.yaml` to point to your FastAPI backend server.
+
+4. **Start the Agent Service:**
+   ```bash
+   sudo systemctl enable --now aegis-agent
+   ```
+
 ### Production Deployment
 
 For production environments, Aegis FleetScope provides Kubernetes manifests and Systemd service files in the `deploy/` directory. Check the `docs/` folder for more advanced deployment strategies and architecture documentation.
