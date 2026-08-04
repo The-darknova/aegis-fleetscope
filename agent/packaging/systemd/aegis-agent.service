@@ -8,7 +8,7 @@ Type=simple
 # Source configuration files if they exist (Debian/Ubuntu and RHEL/CentOS paths)
 EnvironmentFile=-/etc/default/aegis-agent
 EnvironmentFile=-/etc/sysconfig/aegis-agent
-ExecStart=/usr/bin/aegis-agent -config /etc/aegis-fleetscope/agent.yaml
+ExecStart=/opt/aegis-fleetscope/agent/bin/aegis-agent -config /etc/aegis-fleetscope/aegis-agent.yaml
 Restart=on-failure
 RestartSec=10s
 TimeoutStopSec=30
