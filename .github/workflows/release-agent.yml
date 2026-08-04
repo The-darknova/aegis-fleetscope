@@ -44,9 +44,7 @@ jobs:
           GOOS=linux GOARCH=arm64 go build -o bin/aegis-agent-arm64 ./cmd/agent
 
       - name: Setup nFPM
-        uses: goreleaser/nfpm-action@v2
-        with:
-          version: latest
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
 
       - name: Package with nFPM
         working-directory: agent/packaging
