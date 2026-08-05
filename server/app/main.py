@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.api.endpoints import agent, scap, dashboard, auth
+from app.api.endpoints import agent, auth, dashboard, scap
 
 @app.get("/api/v1/health", tags=["System"])
 async def health_check():
