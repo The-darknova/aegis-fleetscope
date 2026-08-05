@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Response, HTTPException, Depends
-from fastapi.responses import FileResponse
 import os
+
+from fastapi import APIRouter, Depends, Response
+from fastapi.responses import FileResponse
+
 from app.core.security import get_current_agent
 
 router = APIRouter()

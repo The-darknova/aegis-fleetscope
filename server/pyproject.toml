@@ -32,3 +32,6 @@ dev = [
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+[tool.ruff.lint]
+extend-ignore = ["B008"]

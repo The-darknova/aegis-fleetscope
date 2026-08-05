@@ -1,21 +1,21 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.security import create_access_token, get_current_agent
 from app.db.session import get_db
+from app.models.compliance import ComplianceScore
 from app.models.host import Host
 from app.models.policy import Policy
 from app.models.scan import HistoricalScan
-from app.models.compliance import ComplianceScore
 from app.schemas.agent import (
     AgentRegistration,
     AgentRegistrationResponse,
     AgentTask,
     AgentTasksResponse,
 )
-from app.core.security import create_access_token, get_current_agent
 
 router = APIRouter()
 
@@ -83,7 +83,7 @@ async def register_agent(agent: AgentRegistration, db: Session = Depends(get_db)
         db_host.os_name = agent.os_name
         db_host.os_version = agent.os_version
         db_host.architecture = agent.architecture
-        db_host.last_seen = datetime.utcnow()
+        db_host.last_seen = datetime.now(UTC)
         db.commit()
         db.refresh(db_host)
 
@@ -104,7 +104,7 @@ async def get_agent_tasks(agent_id: int, db: Session = Depends(get_db), current_
     if not db_host:
         raise HTTPException(status_code=404, detail="Agent not found")
         
-    db_host.last_seen = datetime.utcnow()
+    db_host.last_seen = datetime.now(UTC)
     db.commit()
     
     content_id = resolve_scap_content(db_host.os_name, db_host.os_version)

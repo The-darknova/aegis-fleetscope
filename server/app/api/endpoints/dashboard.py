@@ -1,16 +1,13 @@
-from typing import List, Optional
-from pydantic import BaseModel
-
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
+from app.core.security import get_current_admin
 from app.db.session import get_db
+from app.models.compliance import ComplianceScore
 from app.models.host import Host
 from app.models.policy import Policy
 from app.models.scan import HistoricalScan
-from app.models.compliance import ComplianceScore
-from app.core.security import get_current_admin
 
 router = APIRouter()
 
