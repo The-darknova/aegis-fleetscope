@@ -59,3 +59,6 @@ tmp/
 *.key
 *.crt
 *.egg-info/
+
+# Project Planning
+future_production_plan.md

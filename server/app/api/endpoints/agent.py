@@ -88,7 +88,7 @@ async def register_agent(agent: AgentRegistration, db: Session = Depends(get_db)
         db.refresh(db_host)
 
     # Issue token
-    token = create_access_token(subject=str(db_host.id))
+    token = create_access_token(subject=str(db_host.id), token_type="agent")
     
     return AgentRegistrationResponse(
         id=str(db_host.id),

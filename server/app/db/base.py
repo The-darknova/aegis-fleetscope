@@ -4,3 +4,4 @@ from app.models.policy import Policy  # noqa
 from app.models.scap import ScapMetadata  # noqa
 from app.models.scan import HistoricalScan  # noqa
 from app.models.compliance import ComplianceScore  # noqa
+from app.models.user import User  # noqa
