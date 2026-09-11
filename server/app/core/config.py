@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "super_secret_aegis_key_for_beta"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_DAYS: int = 365
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ENROLLMENT_SECRET: str = "default_enrollment_secret"
     
     # CORS settings
     CORS_ORIGINS: list[str] = ["*"]

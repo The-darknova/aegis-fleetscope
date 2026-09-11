@@ -11,6 +11,7 @@ class AgentRegistration(BaseModel):
 class AgentRegistrationResponse(BaseModel):
     id: str
     token: str
+    agent_key: str
 
 class AgentTask(BaseModel):
     task_id: str
@@ -19,3 +20,9 @@ class AgentTask(BaseModel):
 
 class AgentTasksResponse(BaseModel):
     tasks: list[AgentTask]
+
+class EncryptedRequest(BaseModel):
+    ciphertext: str
+
+class EncryptedResponse(BaseModel):
+    ciphertext: str
