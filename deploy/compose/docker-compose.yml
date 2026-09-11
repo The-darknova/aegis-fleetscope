@@ -1,5 +1,4 @@
-version: '3.8'
-
+---
 services:
   postgres:
     image: postgres:16-alpine
@@ -14,7 +13,7 @@ services:
       - "5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis_fleetscope"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-aegis} -d $${POSTGRES_DB:-aegis_fleetscope}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,8 +24,14 @@ services:
       dockerfile: deploy/docker/server.Dockerfile
     container_name: aegis-server
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis_password}@postgres:5432/${POSTGRES_DB:-aegis_fleetscope}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis_password}@postgres:5432/${POSTGRES_DB:-aegis_fleetscope}}
       - SECRET_KEY=${SECRET_KEY:-default_secret_key_change_in_production}
+      - ENROLLMENT_SECRET=${ENROLLMENT_SECRET:-default_enrollment_secret}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["*"]}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      - ACCESS_TOKEN_EXPIRE_DAYS=${ACCESS_TOKEN_EXPIRE_DAYS:-365}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      - ALGORITHM=${ALGORITHM:-HS256}
     ports:
       - "8000:8000"
     depends_on:
@@ -39,6 +44,8 @@ services:
       context: ../../
       dockerfile: deploy/docker/dashboard.Dockerfile
     container_name: aegis-dashboard
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000/api/v1}
     ports:
       - "8080:80"
     depends_on:

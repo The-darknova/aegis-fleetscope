@@ -1,10 +1,14 @@
+import json
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token, get_current_agent
+from app.core.config import settings
+from app.core.encryption import generate_agent_key, encrypt_payload, decrypt_payload
+from app.core.security import create_access_token, get_current_agent, get_authenticated_agent
 from app.db.session import get_db
 from app.models.compliance import ComplianceScore
 from app.models.host import Host
@@ -15,9 +19,16 @@ from app.schemas.agent import (
     AgentRegistrationResponse,
     AgentTask,
     AgentTasksResponse,
+    EncryptedRequest,
+    EncryptedResponse
 )
 
 router = APIRouter()
+security = HTTPBearer()
+
+def verify_enrollment_secret(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if credentials.credentials != settings.ENROLLMENT_SECRET:
+        raise HTTPException(status_code=403, detail="Invalid enrollment secret")
 
 def resolve_scap_content(os_name: str, os_version: str) -> str:
     """
@@ -62,58 +73,63 @@ def resolve_scap_content(os_name: str, os_version: str) -> str:
     
     return "ssg-generic-ds.xml"
 
-@router.post("/register", response_model=AgentRegistrationResponse, status_code=201)
-async def register_agent(agent: AgentRegistration, db: Session = Depends(get_db)):
+@router.post("/register", response_model=AgentRegistrationResponse, status_code=201, dependencies=[Depends(verify_enrollment_secret)])
+async def register_agent(request: Request, agent: AgentRegistration, db: Session = Depends(get_db)):
+    client_ip = request.client.host if request.client else "0.0.0.0"
+    
     # Check if host exists
     db_host = db.query(Host).filter(Host.hostname == agent.hostname).first()
     
     if not db_host:
+        agent_key = generate_agent_key()
         db_host = Host(
             hostname=agent.hostname,
-            ip_address="0.0.0.0", # TODO: Get real IP from request if needed
+            ip_address=client_ip,
             os_name=agent.os_name,
             os_version=agent.os_version,
-            architecture=agent.architecture
+            architecture=agent.architecture,
+            agent_key=agent_key
         )
         db.add(db_host)
         db.commit()
         db.refresh(db_host)
     else:
         # Update existing host
+        db_host.ip_address = client_ip
         db_host.os_name = agent.os_name
         db_host.os_version = agent.os_version
         db_host.architecture = agent.architecture
         db_host.last_seen = datetime.now(UTC)
+        if not db_host.agent_key:
+            db_host.agent_key = generate_agent_key()
         db.commit()
         db.refresh(db_host)
 
     # Issue token
-    token = create_access_token(subject=str(db_host.id))
+    token = create_access_token(subject=str(db_host.id), token_type="agent")
     
     return AgentRegistrationResponse(
         id=str(db_host.id),
-        token=token
+        token=token,
+        agent_key=db_host.agent_key
     )
 
-@router.get("/{agent_id}/tasks", response_model=AgentTasksResponse)
-async def get_agent_tasks(agent_id: int, db: Session = Depends(get_db), current_agent: int = Depends(get_current_agent)):
-    if current_agent != agent_id:
+@router.get("/{agent_id}/tasks", response_model=EncryptedResponse)
+async def get_agent_tasks(agent_id: int, db: Session = Depends(get_db), current_agent: Host = Depends(get_authenticated_agent)):
+    if current_agent.id != agent_id:
         raise HTTPException(status_code=403, detail="Not authorized to access tasks for this agent")
         
-    db_host = db.query(Host).filter(Host.id == agent_id).first()
-    if not db_host:
-        raise HTTPException(status_code=404, detail="Agent not found")
-        
-    db_host.last_seen = datetime.now(UTC)
+    current_agent.last_seen = datetime.now(UTC)
     db.commit()
     
-    content_id = resolve_scap_content(db_host.os_name, db_host.os_version)
+    content_id = resolve_scap_content(current_agent.os_name, current_agent.os_version)
     
     # Check if there's a specific policy assigned, otherwise use a default
     # For now, just generate one task based on OS
+    # TODO: Get real tasks
     profile_id = "xccdf_org.ssgproject.content_profile_standard"
         
-    return AgentTasksResponse(
+    tasks_response = AgentTasksResponse(
         tasks=[
             AgentTask(
                 task_id=str(uuid.uuid4()),
@@ -122,20 +138,26 @@ async def get_agent_tasks(agent_id: int, db: Session = Depends(get_db), current_
             )
         ]
     )
+    
+    payload = json.dumps(tasks_response.model_dump()).encode('utf-8')
+    ciphertext = encrypt_payload(current_agent.agent_key, payload)
+    
+    return EncryptedResponse(ciphertext=ciphertext)
 
 @router.post("/{agent_id}/reports", status_code=202)
-async def upload_report(agent_id: int, report: UploadFile = File(...), db: Session = Depends(get_db), current_agent: int = Depends(get_current_agent)):
-    if current_agent != agent_id:
+async def upload_report(agent_id: int, encrypted_req: EncryptedRequest, db: Session = Depends(get_db), current_agent: Host = Depends(get_authenticated_agent)):
+    if current_agent.id != agent_id:
         raise HTTPException(status_code=403, detail="Not authorized to upload reports for this agent")
         
-    db_host = db.query(Host).filter(Host.id == agent_id).first()
-    if not db_host:
-        raise HTTPException(status_code=404, detail="Agent not found")
-        
-    xml_content = await report.read()
+    try:
+        decrypted_payload = decrypt_payload(current_agent.agent_key, encrypted_req.ciphertext)
+        xml_content = decrypted_payload
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid encrypted payload")
     
     # Simple XML mock parsing for beta, in real life we would parse OVAL/XCCDF XML
     # Assuming the xml contains some rules
+    # TODO: Parse real XML and extract rule results
     passed = 95
     failed = 5
     total = 100
@@ -155,7 +177,7 @@ async def upload_report(agent_id: int, report: UploadFile = File(...), db: Sessi
         db.refresh(policy)
         
     scan = HistoricalScan(
-        host_id=db_host.id,
+        host_id=current_agent.id,
         policy_id=policy.id,
         passed_rules=passed,
         failed_rules=failed,
@@ -165,7 +187,7 @@ async def upload_report(agent_id: int, report: UploadFile = File(...), db: Sessi
     db.add(scan)
     
     comp_score = ComplianceScore(
-        host_id=db_host.id,
+        host_id=current_agent.id,
         policy_id=policy.id,
         score=score
     )

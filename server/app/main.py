@@ -9,10 +9,12 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
+from app.core.config import settings
+
 # CORS middleware for React Dashboard
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Should be restricted in production
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

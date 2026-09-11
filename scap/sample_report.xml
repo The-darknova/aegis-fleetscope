@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2" id="xccdf_org.ssgproject.content_benchmark_generic">
+  <TestResult id="xccdf_org.ssgproject.content_testresult_generic" start-time="2026-08-12T12:00:00" end-time="2026-08-12T12:05:00">
+    <target>agent-hostname.local</target>
+    <profile idref="xccdf_org.ssgproject.content_profile_standard"/>
+    
+    <!-- Passed Rules -->
+    <rule-result idref="xccdf_org.ssgproject.content_rule_ensure_logrotate_activated" time="2026-08-12T12:00:01" weight="1.0">
+      <result>pass</result>
+    </rule-result>
+    <rule-result idref="xccdf_org.ssgproject.content_rule_sshd_disable_root_login" time="2026-08-12T12:00:02" weight="1.0">
+      <result>pass</result>
+    </rule-result>
+    
+    <!-- Failed Rules -->
+    <rule-result idref="xccdf_org.ssgproject.content_rule_package_telnet-server_removed" time="2026-08-12T12:00:03" weight="1.0">
+      <result>fail</result>
+    </rule-result>
+    
+    <score system="urn:xccdf:scoring:default" maximum="100.000000">66.666667</score>
+  </TestResult>
+</Benchmark>

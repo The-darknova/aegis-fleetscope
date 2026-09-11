@@ -16,6 +16,7 @@ class Host(Base):
     architecture = Column(String, nullable=False)
     last_seen = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, default=True)
+    agent_key = Column(String, nullable=True)
 
     scans = relationship("HistoricalScan", back_populates="host")
     compliance_scores = relationship("ComplianceScore", back_populates="host")

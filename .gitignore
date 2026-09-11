@@ -59,3 +59,9 @@ tmp/
 *.key
 *.crt
 *.egg-info/
+
+# Project Planning
+future_production_plan.md
+AGENT_ARCHITECTURE.md
+DASHBOARD_ARCHITECTURE.md
+SERVER_ARCHITECTURE.md
